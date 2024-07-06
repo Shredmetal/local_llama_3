@@ -2,6 +2,49 @@
 
 This project implements an interactive AI system using the LLaMA 3 8B model.
 
+## Requirements
+
+DO NOT SKIP THIS. You will experience nothing but pain and suffering if you try to spin this up without a chunky 
+nVidia GPU. 
+
+Note this block in src/core/interact.py:
+
+```
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    device_map="auto",
+    torch_dtype=torch.float16,
+    low_cpu_mem_usage=True,
+)   
+```
+
+Specifically, `torch_dtype`. This configures the model to load its weights in half-precision (FP16 as opposed to FP32).
+
+This may impact accuracy, but it would not run without this. The currently selected 8B model, in full precision (FP32), 
+would use approximately 32GB of memory (8 billion parameters * 4 bytes per parameter). In half precision (FP16), it 
+would use about 16GB. With 4-bit quantisation, it would use around 4GB. Make sure you have enough VRAM. If you do not
+have 16GB of VRAM to throw around, you could implement 4 bit quantisation. It will look something like this:
+
+```
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4"
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    quantization_config=quantization_config,
+    device_map="auto",
+    torch_dtype=torch.float16,
+    low_cpu_mem_usage=True,
+)
+```
+
+If you're wondering, I'm using an RTX 4090 and the LLaMa 8B model works fine on my GPU, but it chokes on the LLaMa-70B model.
+
 ## Setup Instructions
 
 ### 1. Python Virtual Environment
@@ -96,6 +139,11 @@ Hit the run button in PyCharm like a normal person on src/core/interact.py. Or i
 
 `python src/core/interact.py`
 
+You can configure the answer profile by editing this line in src/core/interact.py:
+
+`system_message = {"role": "system", "content": "You are a helpful but snarky AI assistant."}`
+
+Change the value to the "content" ley in this dictionary.
 
 ## Troubleshooting
 

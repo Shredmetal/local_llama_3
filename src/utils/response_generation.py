@@ -22,7 +22,6 @@ def generate_response(system_message, tokenizer, pipeline, logger, user_interact
             streamer=streamer,
         )
 
-        # We're not using a separate thread anymore
         pipeline(prompt, **generation_kwargs)
 
         return streamer.generated_text.strip()

@@ -17,7 +17,6 @@ class StreamHandler(TextIteratorStreamer):
         self.token_count += len(self.tokenizer.encode(text))
         self.generated_text += text
 
-        # Print the actual generated text
         sys.stdout.write(text)
         sys.stdout.flush()
 
